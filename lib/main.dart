@@ -43,7 +43,7 @@ class _RandomWordsState extends State<RandomWords> {
         title: const Text('Startup Name Generator'),
         actions: [
           IconButton(
-            icon: Icon(Icons.line_style_rounded),
+            icon: const Icon(Icons.line_style_rounded),
             iconSize: 40,
             tooltip: 'Mudar visualização',
             onPressed: () {
@@ -123,7 +123,7 @@ class _RandomWordsState extends State<RandomWords> {
                       ],
                     ),
                   ),
-                )
+                ),
               ],
             ),
           );
@@ -139,20 +139,30 @@ class _RandomWordsState extends State<RandomWords> {
         pair.asPascalCase,
         style: _biggerFont,
       ),
-      trailing: Icon(
-        alreadySaved ? Icons.favorite : Icons.favorite_border,
-        color: alreadySaved ? Colors.red : null,
-        semanticLabel: alreadySaved ? 'Remove from saved' : 'Save',
+      trailing: Container(
+        width: 100,
+        child: Row(
+          children: [
+            IconButton(
+              icon: const Icon(Icons.favorite),
+              color: alreadySaved ? Colors.red : null,
+              onPressed: () {
+                setState(() {
+                  alreadySaved ? _saved.remove(pair) : _saved.add(pair);
+                });
+              },
+            ),
+            IconButton(
+                icon: const Icon(Icons.delete),
+                onPressed: () {
+                  setState(() {
+                    _suggestions.remove(pair);
+                    _saved.remove(pair);
+                  });
+                })
+          ],
+        ),
       ),
-      onTap: () {
-        setState(() {
-          if (alreadySaved) {
-            _saved.remove(pair);
-          } else {
-            _saved.add(pair);
-          }
-        });
-      },
     );
   }
 
