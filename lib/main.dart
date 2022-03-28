@@ -1,3 +1,4 @@
+import 'dart:html';
 import 'dart:ui';
 import 'package:english_words/english_words.dart';
 import 'package:flutter/material.dart';
@@ -6,12 +7,57 @@ void main() {
   runApp(const MyApp());
 }
 
+class ParPalavra {
+  String palavra1;
+  String palavra2;
+
+  first() {
+    return palavra1;
+  }
+
+  second() {
+    return palavra2;
+  }
+
+  gerarPares() {
+    String par = palavra1 + palavra2;
+    return par;
+  }
+
+  ParPalavra(this.palavra1, this.palavra2);
+}
+
+class Repository {
+  List listaPalavras = [];
+
+  addElement(String element) {
+    listaPalavras.add(element);
+  }
+
+  getAll() {
+    return listaPalavras;
+  }
+
+  getIndex(value) {
+    return listaPalavras.indexOf(value);
+  }
+
+  void editarPalavra(palavraOri, palavraEdi) {
+    listaPalavras[listaPalavras.indexOf(palavraOri)] = palavraEdi;
+  }
+}
+
 class MyApp extends StatelessWidget {
   const MyApp({Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
+      initialRoute: '/',
+      routes: {
+        '/': (context) => RandomWords(),
+        TelaEditar.rotaEditar: (context) => Sub(),
+      },
       title: 'Welcome to Flutter',
       theme: ThemeData(
         // Add the 5 lines from here...
@@ -20,7 +66,6 @@ class MyApp extends StatelessWidget {
           foregroundColor: Colors.black,
         ),
       ),
-      home: RandomWords(),
     );
   }
 }
@@ -32,10 +77,9 @@ class RandomWords extends StatefulWidget {
 
 class _RandomWordsState extends State<RandomWords> {
   bool _checkState = true;
-  final _suggestions = <WordPair>[];
-  final _saved = <WordPair>{};
+  final _saved = [];
   final _biggerFont = const TextStyle(fontSize: 18);
-
+  final rep = Repository();
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -56,6 +100,15 @@ class _RandomWordsState extends State<RandomWords> {
             icon: const Icon(Icons.list),
             onPressed: _pushSaved,
             tooltip: 'Saved Suggestions',
+          ),
+          IconButton(
+            icon: const Icon(Icons.refresh),
+            onPressed: () {
+              setState(() {
+                RefreshCallback;
+              });
+            },
+            tooltip: 'Atualizar',
           ),
         ],
       ),
@@ -88,12 +141,12 @@ class _RandomWordsState extends State<RandomWords> {
           final index = i ~/ 2;
           // If you've reached the end of the available word
           // pairings...
-          if (index >= _suggestions.length) {
+          if (index >= rep.getAll().length) {
             // ...then generate 10 more and add them to the
             // suggestions list.
-            _suggestions.addAll(generateWordPairs().take(10));
+            rep.addElement(ParPalavra(nouns[i], nouns[i + 1]).gerarPares());
           }
-          return _buildRow(_suggestions[index]);
+          return _buildRow(rep.listaPalavras[index]);
         },
       );
     } else {
@@ -106,8 +159,8 @@ class _RandomWordsState extends State<RandomWords> {
           childAspectRatio: 8 / 2,
         ),
         itemBuilder: (context, i) {
-          if (i >= _suggestions.length) {
-            _suggestions.addAll(generateWordPairs().take(10));
+          if (i >= rep.getAll().length) {
+            rep.addElement(ParPalavra(nouns[i], nouns[i + 1]).gerarPares());
           }
 
           return Container(
@@ -119,7 +172,7 @@ class _RandomWordsState extends State<RandomWords> {
                     padding: const EdgeInsets.all(10),
                     child: Column(
                       children: <Widget>[
-                        _buildRow(_suggestions[i]),
+                        _buildRow(rep.listaPalavras[i]),
                       ],
                     ),
                   ),
@@ -132,13 +185,19 @@ class _RandomWordsState extends State<RandomWords> {
     }
   }
 
-  Widget _buildRow(WordPair pair) {
+  Widget _buildRow(String pair) {
     final alreadySaved = _saved.contains(pair);
     return ListTile(
       title: Text(
-        pair.asPascalCase,
+        pair,
         style: _biggerFont,
       ),
+      onTap: () {
+        setState(() {
+          Navigator.pushNamed(context, '/telaEditar',
+              arguments: {'palavras': rep.getAll(), 'palavra': pair});
+        });
+      },
       trailing: Container(
         width: 100,
         child: Row(
@@ -156,7 +215,7 @@ class _RandomWordsState extends State<RandomWords> {
                 icon: const Icon(Icons.delete),
                 onPressed: () {
                   setState(() {
-                    _suggestions.remove(pair);
+                    rep.listaPalavras.remove(pair);
                     _saved.remove(pair);
                   });
                 })
@@ -174,7 +233,7 @@ class _RandomWordsState extends State<RandomWords> {
             (pair) {
               return ListTile(
                 title: Text(
-                  pair.asPascalCase,
+                  pair.toString(),
                   style: _biggerFont,
                 ),
               );
@@ -194,6 +253,49 @@ class _RandomWordsState extends State<RandomWords> {
             body: ListView(children: divided),
           );
         },
+      ),
+    );
+  }
+}
+
+class Sub extends StatefulWidget {
+  @override
+  TelaEditar createState() => TelaEditar();
+}
+
+class TelaEditar extends State<Sub> {
+  static const rotaEditar = '/telaEditar';
+  String variavel = 'Salvar';
+  @override
+  Widget build(BuildContext context) {
+    final argumentos =
+        (ModalRoute.of(context)?.settings.arguments ?? <List, String>{}) as Map;
+    final TextEditingController _controller1 = TextEditingController();
+    String palavra = argumentos['palavra'];
+    List palavrasList = argumentos['palavras'];
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Editar Palavras'),
+      ),
+      body: Container(
+        child: Column(
+          children: [
+            TextField(
+              controller: _controller1,
+              decoration: InputDecoration(hintText: palavra),
+            ),
+            TextButton(
+              child: Text(variavel),
+              onPressed: () {
+                setState(() {
+                  palavrasList[palavrasList.indexOf(palavra)] =
+                      _controller1.text;
+                  Navigator.pop(context);
+                });
+              },
+            ),
+          ],
+        ),
       ),
     );
   }
