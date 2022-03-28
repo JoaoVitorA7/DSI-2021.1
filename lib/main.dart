@@ -57,6 +57,7 @@ class MyApp extends StatelessWidget {
       routes: {
         '/': (context) => RandomWords(),
         TelaEditar.rotaEditar: (context) => Sub(),
+        TelaCriar.rotaEditar: (context) => Sub2()
       },
       title: 'Welcome to Flutter',
       theme: ThemeData(
@@ -97,9 +98,19 @@ class _RandomWordsState extends State<RandomWords> {
             },
           ),
           IconButton(
-            icon: const Icon(Icons.list),
+            icon: const Icon(Icons.monitor_heart),
             onPressed: _pushSaved,
             tooltip: 'Saved Suggestions',
+          ),
+          IconButton(
+            icon: const Icon(Icons.plus_one),
+            onPressed: () {
+              setState(() {
+                Navigator.pushNamed(context, '/telaCriar',
+                    arguments: rep.listaPalavras);
+              });
+            },
+            tooltip: 'Criar Palavra',
           ),
           IconButton(
             icon: const Icon(Icons.refresh),
@@ -117,6 +128,7 @@ class _RandomWordsState extends State<RandomWords> {
   }
 
   Widget _buildSuggestions() {
+    int variavel = 20;
     if (_checkState) {
       return ListView.builder(
         padding: const EdgeInsets.all(16),
@@ -126,27 +138,24 @@ class _RandomWordsState extends State<RandomWords> {
         // the word pairing. For odd rows, the function adds a
         // Divider widget to visually separate the entries. Note that
         // the divider may be difficult to see on smaller devices.
+        itemCount: variavel,
         itemBuilder: (context, i) {
           // Add a one-pixel-high divider widget before each row
           // in the ListView.
-          if (i.isOdd) {
-            return const Divider();
-          }
 
           // The syntax "i ~/ 2" divides i by 2 and returns an
           // integer result.
           // For example: 1, 2, 3, 4, 5 becomes 0, 1, 1, 2, 2.
           // This calculates the actual number of word pairings
           // in the ListView,minus the divider widgets.
-          final index = i ~/ 2;
           // If you've reached the end of the available word
           // pairings...
-          if (index >= rep.getAll().length) {
+          if (i >= rep.getAll().length) {
             // ...then generate 10 more and add them to the
             // suggestions list.
             rep.addElement(ParPalavra(nouns[i], nouns[i + 1]).gerarPares());
           }
-          return _buildRow(rep.listaPalavras[index]);
+          return _buildRow(rep.listaPalavras[i]);
         },
       );
     } else {
@@ -158,6 +167,7 @@ class _RandomWordsState extends State<RandomWords> {
           crossAxisSpacing: 1.0,
           childAspectRatio: 8 / 2,
         ),
+        itemCount: variavel,
         itemBuilder: (context, i) {
           if (i >= rep.getAll().length) {
             rep.addElement(ParPalavra(nouns[i], nouns[i + 1]).gerarPares());
@@ -290,6 +300,45 @@ class TelaEditar extends State<Sub> {
                 setState(() {
                   palavrasList[palavrasList.indexOf(palavra)] =
                       _controller1.text;
+                  Navigator.pop(context);
+                });
+              },
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class Sub2 extends StatefulWidget {
+  @override
+  TelaCriar createState() => TelaCriar();
+}
+
+class TelaCriar extends State<Sub2> {
+  static const rotaEditar = '/telaCriar';
+  String variavel = 'Criar';
+  @override
+  Widget build(BuildContext context) {
+    List argumentos = (ModalRoute.of(context)?.settings.arguments as List);
+    final TextEditingController _controller1 = TextEditingController();
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Editar Palavras'),
+      ),
+      body: Container(
+        child: Column(
+          children: [
+            TextField(
+              controller: _controller1,
+              decoration: InputDecoration(hintText: ""),
+            ),
+            TextButton(
+              child: Text(variavel),
+              onPressed: () {
+                setState(() {
+                  argumentos.add(_controller1.text);
                   Navigator.pop(context);
                 });
               },
