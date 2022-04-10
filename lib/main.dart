@@ -56,8 +56,7 @@ class MyApp extends StatelessWidget {
       initialRoute: '/',
       routes: {
         '/': (context) => RandomWords(),
-        TelaEditar.rotaEditar: (context) => Sub(),
-        TelaCriar.rotaEditar: (context) => Sub2()
+        TelaEditar.rotaEditar: (context) => Sub()
       },
       title: 'Welcome to Flutter',
       theme: ThemeData(
@@ -98,7 +97,7 @@ class _RandomWordsState extends State<RandomWords> {
             },
           ),
           IconButton(
-            icon: const Icon(Icons.monitor_heart),
+            icon: const Icon(Icons.favorite),
             onPressed: _pushSaved,
             tooltip: 'Saved Suggestions',
           ),
@@ -106,8 +105,8 @@ class _RandomWordsState extends State<RandomWords> {
             icon: const Icon(Icons.plus_one),
             onPressed: () {
               setState(() {
-                Navigator.pushNamed(context, '/telaCriar',
-                    arguments: rep.listaPalavras);
+                Navigator.pushNamed(context, '/telaEditar',
+                    arguments: {'palavras': rep.getAll(), 'palavra': null});
               });
             },
             tooltip: 'Criar Palavra',
@@ -280,72 +279,57 @@ class TelaEditar extends State<Sub> {
   Widget build(BuildContext context) {
     final argumentos =
         (ModalRoute.of(context)?.settings.arguments ?? <List, String>{}) as Map;
-    final TextEditingController _controller1 = TextEditingController();
-    String palavra = argumentos['palavra'];
-    List palavrasList = argumentos['palavras'];
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Editar Palavras'),
-      ),
-      body: Container(
-        child: Column(
-          children: [
-            TextField(
-              controller: _controller1,
-              decoration: InputDecoration(hintText: palavra),
-            ),
-            TextButton(
-              child: Text(variavel),
-              onPressed: () {
-                setState(() {
-                  palavrasList[palavrasList.indexOf(palavra)] =
-                      _controller1.text;
-                  Navigator.pop(context);
-                });
-              },
-            ),
-          ],
+    if (argumentos['palavra'] != null) {
+      final palavraTextoEditar =
+          TextEditingController(text: argumentos['palavra']);
+      String palavra = argumentos['palavra'];
+      List palavrasList = argumentos['palavras'];
+      return Scaffold(
+        appBar: AppBar(
+          title: const Text('Editar Palavras'),
         ),
-      ),
-    );
-  }
-}
-
-class Sub2 extends StatefulWidget {
-  @override
-  TelaCriar createState() => TelaCriar();
-}
-
-class TelaCriar extends State<Sub2> {
-  static const rotaEditar = '/telaCriar';
-  String variavel = 'Criar';
-  @override
-  Widget build(BuildContext context) {
-    List argumentos = (ModalRoute.of(context)?.settings.arguments as List);
-    final TextEditingController _controller1 = TextEditingController();
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Editar Palavras'),
-      ),
-      body: Container(
-        child: Column(
-          children: [
-            TextField(
-              controller: _controller1,
-              decoration: InputDecoration(hintText: ""),
-            ),
-            TextButton(
-              child: Text(variavel),
-              onPressed: () {
-                setState(() {
-                  argumentos.add(_controller1.text);
-                  Navigator.pop(context);
-                });
-              },
-            ),
-          ],
+        body: Container(
+          child: Column(
+            children: [
+              TextField(controller: palavraTextoEditar),
+              TextButton(
+                child: Text(variavel),
+                onPressed: () {
+                  setState(() {
+                    palavrasList[palavrasList.indexOf(palavra)] =
+                        palavraTextoEditar.text;
+                    Navigator.pop(context);
+                  });
+                },
+              ),
+            ],
+          ),
         ),
-      ),
-    );
+      );
+    } else {
+      final palavraInserida = TextEditingController();
+      List palavrasList = argumentos['palavras'];
+      return Scaffold(
+        appBar: AppBar(
+          title: const Text('Editar Palavras'),
+        ),
+        body: Container(
+          child: Column(
+            children: [
+              TextField(controller: palavraInserida),
+              TextButton(
+                child: Text(variavel),
+                onPressed: () {
+                  setState(() {
+                    palavrasList.insert(0, palavraInserida.text);
+                    Navigator.pop(context);
+                  });
+                },
+              ),
+            ],
+          ),
+        ),
+      );
+    }
   }
 }
